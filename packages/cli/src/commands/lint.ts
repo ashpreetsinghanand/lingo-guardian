@@ -39,8 +39,8 @@ export const lintCommand = new Command('lint')
     )
     .option(
         '-l, --locale <locales...>',
-        'Locales to test (e.g., en pseudo ar de)',
-        ['en', 'pseudo']
+        'Locales to test (e.g., en pseudo ar de)'
+        // Default removed to allow auto-detection
     )
     .option('-f, --format <format>', 'Output format: table, json, html, markdown', 'table')
     .option('-s, --screenshot', 'Capture screenshots of issues', false)
@@ -54,7 +54,7 @@ export const lintCommand = new Command('lint')
         const lintOptions: ExtendedLintOptions = {
             project: options.project as string,
             useLingo: options.useLingo as boolean,
-            locale: options.locale as string[],
+            locale: options.locale as string[], // Now undefined if not passed
             format: options.format as OutputFormat,
             screenshot: options.screenshot as boolean,
             output: options.output as string,
@@ -95,6 +95,32 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
         // STEP 1: Detect Lingo.dev configuration
         spinner.text = 'Detecting Lingo.dev configuration...';
         const hasConfig = await lingo.detectConfig();
+
+        // RESOLVE LOCALES EARLY
+        // ----------------------------------------------------------------
+        let locales: string[] = [];
+
+        if (options.locale && options.locale.length > 0) {
+            // Priority 1: User specified locales
+            locales = options.locale;
+        } else if (lingo.getConfig()) {
+            // Priority 2: Auto-detect from config (if exists)
+            const targets = lingo.getTargetLocales();
+            // Priority 3: Auto-detect from config targets
+            if (targets.length > 0) {
+                console.log(chalk.blue(`\nℹ  Auto-detected locales from i18n.json: ${targets.join(', ')}`));
+                locales = ['en', ...targets];
+            } else {
+                locales = ['en', 'pseudo'];
+            }
+        } else {
+            // Priority 4: Fallback default
+            locales = ['en', 'pseudo'];
+        }
+
+        // Update options reference so downstream checks work
+        options.locale = locales;
+        // ----------------------------------------------------------------
 
         if (options.useLingo) {
             if (!hasConfig) {

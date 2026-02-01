@@ -1,122 +1,167 @@
-# 🛡️ Lingo-Guardian CLI
+# 🛡️ Lingo-Guardian
 
-> **Detect i18n layout issues before they reach production**
+> **The Automated DevSecOps Firewall for Internationalization**
 
-Powered by [Lingo.dev](https://lingo.dev)
+Detect UI overflows, RTL layout breaks, and missing i18n keys before they reach production.
+Powered by [Lingo.dev](https://lingo.dev).
+
+---
+
+## 🤖 For AI Agents & LLMs
+
+If you are an agent trying to use this tool, here is the context you need:
+
+1.  **Purpose**: Audits a URL for visual regressions caused by text expansion (German) or layout shifts (Arabic/RTL).
+2.  **Core Mechanic**: It uses Lingo.dev to ANY-to-ANY translate your app's source content, then uses a headless browser to detect `scrollWidth > offsetWidth` (Red Glow).
+3.  **Auto-Detection**: If `i18n.json` exists, it automatically detects and tests ALL configured locales.
 
 ---
 
 ## 📦 Installation
 
 ```bash
+# Install globally (Optional)
 npm install -g lingo-guardian
-```
 
----
-
-## 🔑 API Key Setup
-
-Lingo-Guardian uses **Lingo.dev** for AI-powered translations.
-
-### Step 1: Get Your API Key
-1. Go to [lingo.dev](https://lingo.dev)
-2. Sign up or log in
-3. Navigate to **Settings → API Keys**
-4. Create a new API key
-
-### Step 2: Set Your API Key
-
-```bash
-# Option A: Environment variable (recommended)
-export LINGODOTDEV_API_KEY="your-api-key-here"
-
-# Option B: .env file in your project
-echo "LINGODOTDEV_API_KEY=your-api-key" > .env
-```
-
-### Step 3: Initialize Lingo.dev
-
-```bash
-cd your-project
-npx lingo.dev@latest init
+# OR Run directly (Recommended)
+npx lingo-guardian lint <url>
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-```bash
-# Initialize Lingo.dev in your project
-npx lingo.dev@latest init
+### 1. Prerequisite: Lingo.dev Config (Recommended)
+If you have an `i18n.json` file, the tool becomes "Zero-Config".
 
-# Start your dev server
+**Initialize Lingo.dev (if not done):**
+```bash
+npx lingo.dev@latest init
+```
+*This creates `i18n.json` determining your source and target languages.*
+
+### 2. Run the Audit
+```bash
+# 1. Start your app server
 npm run dev
 
-# Run the audit
-lingo-guardian lint http://localhost:3000
+# 2. Run the audit (Auto-detects locales from i18n.json)
+npx lingo-guardian lint http://localhost:3000
 ```
 
 ---
 
-## 👁️ Visual PR Guardian (GitHub Action)
+## 🧠 Behavior & Edge Cases
 
-Turn every Pull Request into an automated visual audit with the **Zero-Config GitHub Action**:
+### 1. "Zero-Config" Auto-Detection (Standard)
+If `i18n.json` is present in your project root:
+- The tool **READS** `config.locale.targets` (e.g., `['de', 'ar', 'ja']`).
+- It **GENERATES** missing translations using `npx lingo.dev run`.
+- It **AUDITS** `en`, `de`, `ar`, and `ja` automatically.
+
+### 2. Standard Fallback (No Config)
+If `i18n.json` is **MISSING**:
+- The tool logs a warning: `⚠ No Lingo.dev config (i18n.json) found`.
+- It falls back to **Algorithmic Mode**: Tests `en` and `pseudo` (algorithmic text expansion).
+- It will **SKIP** the `lingo.dev run` generation step.
+
+### 3. Manual Overrides
+You can force specific locales regardless of config:
+```bash
+# Ignore config and only test German and Arabic
+npx lingo-guardian lint http://localhost:3000 --locale de ar
+```
+
+---
+
+## 🤖 Visual PR Guardian (GitHub Action)
+
+Turn every Pull Request into an automated visual audit. This action runs the audit and posts a **Visual Report** directly to the PR comments.
+
+### Usage
+
+Create `.github/workflows/lingo-guardian.yml`:
 
 ```yaml
-# .github/workflows/lingo-audit.yml
-- name: 📸 Run Visual Audit
-  uses: ashpreetsinghanand/lingo-guardian/packages/action@main
-  with:
-    url: 'http://localhost:3000'
-    lingo-api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
-    github-token: ${{ secrets.GITHUB_TOKEN }}
+name: 🛡️ Lingo-Guardian
+
+on: [pull_request]
+
+jobs:
+  visual-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # 1. Start your app
+      - name: Install & Start App
+        run: |
+          npm ci
+          npm run build
+          npm run start &
+          npx wait-on http://localhost:3000
+
+      # 2. Run Lingo-Guardian Action
+      - name: 📸 Run Visual Audit
+        uses: ashpreetsinghanand/lingo-guardian/packages/action@main
+        with:
+          url: 'http://localhost:3000'
+          lingo-api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Optional:
+          # fail-on-error: 'true' 
+          # locales: 'en,pseudo,ar,de' (Auto-detects if omitted)
 ```
 
-See [Full Visual PR Guide](https://github.com/ashpreetsinghanand/lingo-guardian/blob/main/docs/VISUAL_PR_GUARDIAN.md) for details.
+**Inputs:**
+- `url` (Required): The local URL where your app is running (e.g., `http://localhost:3000`).
+- `lingo-api-key` (Required): Your Lingo.dev API key for generating translations.
+- `github-token` (Required): `secrets.GITHUB_TOKEN` to post comments on the PR.
+- `fail-on-error` (Optional): Set to `'true'` to fail the build if issues are found.
 
 ---
 
-## ✨ Features
-
-- 🔍 CSS overflow detection (`scrollWidth > offsetWidth`)
-- 🌍 Pseudo-locale text expansion testing
-- ↔️ RTL layout validation
-- 📊 Table, JSON, and HTML reports
-- 🖥️ Cross-platform (Mac, Windows, Linux)
-
----
-
-## 📖 Usage
+## 🔧 CLI Reference
 
 ```bash
 lingo-guardian lint <url> [options]
 
 Options:
-  -p, --project <path>        Project with i18n.json (default: cwd)
-  -l, --locale <locales...>   Locales to test (default: ["en", "pseudo"])
-  -f, --format <format>       Output format: table, json, html
-  --fail-on-error             Exit with error code if issues found
-  -v, --verbose               Enable verbose logging
+  -p, --project <path>       Path to project root containing i18n.json (default: cwd)
+  --no-use-lingo             Disable Lingo.dev auto-generation (use existing files only)
+  -l, --locale <locales...>  Explicit locales to test (Overwrites auto-detection)
+  -f, --format <format>      Output: table, json, html, markdown (default: table)
+  -s, --screenshot           Save screenshots of errors to ./screenshots
+  --fail-on-error            Exit with code 1 if issues found (CI/CD mode)
 ```
 
-### Examples
+---
 
+## 🛠️ Troubleshooting
+
+### "No buckets found"
+**Cause:** Your `i18n.json` has `buckets: {}` or invalid types.
+**Fix:** Ensure your bucket key is a valid parser (e.g., `json`, `react`).
+```json
+// CORRECT
+"buckets": {
+  "json": { "include": ["locales/[locale].json"] }
+}
+```
+
+### "Chrome failed to launch"
+**Cause:** CI/CD environment missing browser binaries.
+**Fix:** Run `npx playwright install chromium` before the audit.
+
+### "Authentication Failed"
+**Cause:** Missing API Key.
+**Fix:**
 ```bash
-# Basic audit
-lingo-guardian lint http://localhost:3000
-
-# Test multiple locales
-lingo-guardian lint http://localhost:3000 --locale en pseudo ar de
-
-# CI mode with exit code
-lingo-guardian lint http://localhost:3000 --fail-on-error
-
-# HTML report
-lingo-guardian lint http://localhost:3000 --format html -o ./reports
+export LINGODOTDEV_API_KEY=your_key_here
 ```
 
 ---
 
 ## 📄 License
 
-MIT
+MIT © Lingo-Guardian Team

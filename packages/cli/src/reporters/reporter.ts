@@ -73,12 +73,14 @@ export class Reporter {
                     chalk.bold('Element'),
                     chalk.bold('Overflow'),
                     chalk.bold('Text'),
+                    chalk.bold('Fix Suggestions'),
                 ],
                 ...result.issues.map((issue) => [
                     this.formatSeverity(issue.severity),
-                    this.truncate(issue.selector, 40),
+                    this.truncate(issue.selector, 30),
                     this.formatOverflow(issue),
-                    this.truncate(issue.textContent, 25),
+                    this.truncate(issue.textContent, 20),
+                    chalk.gray(issue.suggestion || '-'),
                 ]),
             ];
 

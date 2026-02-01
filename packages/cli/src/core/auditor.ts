@@ -41,6 +41,7 @@ interface EvaluateIssue {
     scrollHeight: number;
     overflowDirection: 'horizontal' | 'vertical' | 'both';
     severity: 'error' | 'warning' | 'info';
+    suggestion?: string;
     boundingRect: { x: number; y: number; width: number; height: number };
 }
 
@@ -258,6 +259,17 @@ export class Auditor {
                         severity = 'info';
                     }
 
+                    let suggestion = '';
+                    if (overflowDirection === 'horizontal') {
+                        if (el.tagName.toLowerCase() === 'table') {
+                            suggestion = 'Add parent with overflow-x-auto';
+                        } else {
+                            suggestion = 'Try: truncate, break-words, or w-full';
+                        }
+                    } else {
+                        suggestion = 'Try: h-auto, line-clamp, or overflow-y-auto';
+                    }
+
                     results.push({
                         selector,
                         tagName: el.tagName.toLowerCase(),
@@ -268,6 +280,7 @@ export class Auditor {
                         scrollHeight,
                         overflowDirection,
                         severity,
+                        suggestion,
                         boundingRect: {
                             x: rect.x,
                             y: rect.y,

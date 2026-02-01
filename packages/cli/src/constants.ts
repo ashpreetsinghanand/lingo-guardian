@@ -72,6 +72,8 @@ export interface OverflowIssue {
     severity: Severity;
     /** Locale where issue was detected */
     locale: string;
+    /** Optional suggestion for fixing the issue */
+    suggestion?: string;
     /** Bounding rect for screenshot */
     boundingRect: {
         x: number;

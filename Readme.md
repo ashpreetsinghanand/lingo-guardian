@@ -200,9 +200,12 @@ jobs:
 lingo-guardian lint http://localhost:3000
 ```
 
-### Test Multiple Locales
+### Test Multiple Locales (Real Word Strategy)
+By default, the CLI uses algorithmic `pseudo` locale for stress testing. To test with **real AI-generated translations** (e.g., German for length, Arabic for RTL), ensure you have initialized Lingo.dev (`npx lingo.dev init`) and run:
+
 ```bash
-lingo-guardian lint http://localhost:3000 --locale en pseudo ar de
+# Uses the actual translations from your locales/ directory
+lingo-guardian lint http://localhost:3000 --locale de ar ja
 ```
 
 ### Generate HTML Report
