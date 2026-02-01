@@ -42,7 +42,7 @@ export const lintCommand = new Command('lint')
         'Locales to test (e.g., en pseudo ar de)',
         ['en', 'pseudo']
     )
-    .option('-f, --format <format>', 'Output format: table, json, html', 'table')
+    .option('-f, --format <format>', 'Output format: table, json, html, markdown', 'table')
     .option('-s, --screenshot', 'Capture screenshots of issues', false)
     .option('-o, --output <dir>', 'Output directory for reports', './lingo-guardian-reports')
     .option('--fail-on-error', 'Exit with error code if issues found', false)
@@ -172,8 +172,8 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
             chalk.gray('\n📦 Powered by Lingo.dev - https://lingo.dev\n')
         );
 
-        // Save report if output format is json or html
-        if (options.format === 'json' || options.format === 'html') {
+        // Save report if output format is json, html, or markdown
+        if (options.format === 'json' || options.format === 'html' || options.format === 'markdown') {
             await reporter.save(results, options.output);
         }
 

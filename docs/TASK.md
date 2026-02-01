@@ -12,8 +12,10 @@
 - [x] Detect and use `i18n.json` / `lingo.config.js` configuration
 - [x] Switch from Puppeteer to Playwright for cross-platform support (Mac/Win/Linux)
 
-## Phase 2: GitHub Action (`lingo-guardian-action`)
-- [ ] Create `.github/workflows/lingo-guardian.yml` workflow
+## Feature 2: Visual PR Guardian
+- [x] Add Markdown reporter to CLI
+- [x] Create GitHub Action workflow guide
+- [ ] Implement workflow file in repo (`.github/workflows/lingo-guardian.yml`)
 - [ ] Implement screenshot capture before/after locale changes
 - [ ] Post comparison table as PR comment
 - [ ] Handle pseudo-locale expansion screenshots

@@ -1,6 +1,6 @@
 {
     "name": "lingo-guardian",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "CLI tool to detect i18n layout issues - CSS overflows, RTL breaks, and text expansion problems. Powered by Lingo.dev",
     "author": "Lingo-Guardian Team",
     "license": "MIT",

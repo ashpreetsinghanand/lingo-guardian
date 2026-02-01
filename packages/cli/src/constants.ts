@@ -108,7 +108,7 @@ export interface LintOptions {
     /** Locales to test */
     locale: string[];
     /** Output format */
-    format: 'table' | 'json' | 'html';
+    format: 'table' | 'json' | 'html' | 'markdown';
     /** Take screenshots */
     screenshot: boolean;
     /** Output directory for reports */
