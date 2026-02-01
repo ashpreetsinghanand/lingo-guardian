@@ -17,43 +17,30 @@ Proposed Changes
 
 ---
 
-### Component 2: Visual PR Guardian (GitHub Action) [READY]
+### Component 2: Visual PR Guardian (GitHub Action) [IN PROGRESS]
 
-- [x] CLI Markdown Support
-- [x] Workflow Guide Created (`docs/VISUAL_PR_GUARDIAN.md`)
-- [ ] User Implementation (Copy workflow to repo)
+**Goal:** Automate visual verification by generating a 4-locale comparison grid (en, pseudo, ar, ja) stitched into a single image.
 
-**Goal:** Automate auditing and reporting on every Pull Request.
+#### 1. [NEW] CLI Command: `visual <url>`
+New command in `@lingo-guardian/cli` that handles the heavy lifting.
+- **Dependencies:** `sharp` (for image processing).
+- **Logic:**
+  1. Launch Playwright.
+  2. Visit URL with `?lang=en`, `?lang=pseudo`, `?lang=ar`, `?lang=ja`.
+  3. Capture screenshots for each.
+  4. Use `sharp` to composite them into a 2x2 grid.
+  5. Save as `visual-report.png`.
 
-#### 1. [NEW] Markdown Reporter Support
-Add `--format markdown` to CLI.
-- Output: A GitHub-flavored markdown table summarizing the audit.
-- Content:
-  - Summary stats (Total issues, locales tested).
-  - Table of issues (Selector, Locale, Severity).
-  - *Stretch*: Embedded base64 thumbnails (if small enough for comment limit)?
+#### 2. [NEW] GitHub Workflow: `.github/workflows/visual-pr.yml`
+- Triggers on Pull Request.
+- Installs CLI.
+- Runs `lingo-guardian visual http://localhost:3000`.
+- Uploads `visual-report.png` as artifact.
+- Comments on PR with download link.
 
-#### 2. [NEW] `.github/workflows/lingo-guardian.yml`
-The workflow configuration.
-
-**Steps:**
-1. **Checkout** code.
-2. **Install** dependencies.
-3. **Init Lingo.dev** (using `LINGODOTDEV_API_KEY` secret).
-4. **Start Application** (wait for localhost).
-5. **Run Guardian**:
-   ```bash
-   npx lingo-guardian lint http://localhost:3000 \
-     --locale en pseudo ar \
-     --screenshot \
-     --format markdown \
-     --output ./report
-   ```
-6. **Upload Artifacts**: Upload `./report/screenshots` as a workflow artifact ("Visual Evidence").
-7. **Post Comment**: Read `./report/audit.md` and post to PR using `actions/github-script` or `sticky-pull-request-comment`.
-
-#### 3. [NEW] `.github/actions/visual-guardian` (Composite Action)
-(Optional) Wrap it all in a reusable action for easier consumption.
+#### 3. [NEW] `apps/demo-app`
+- We need this "Victim App" to actually run the workflow against for the demo.
+- Setup Next.js app with `lingo.dev` pre-configured.
 
 ---Component 3: Reporter Hook (@lingo-guardian/reporter)
 React hook for real-time overflow detection during development.

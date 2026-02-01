@@ -1,0 +1,63 @@
+name: 'Lingo Visual Guardian'
+description: 'Automated i18n visual regression testing and screenshot stitching'
+inputs:
+  url:
+    description: 'The URL to audit (e.g., http://localhost:3000)'
+    required: true
+  lingo-api-key:
+    description: 'Lingo.dev API Key'
+    required: true
+  github-token:
+    description: 'GitHub Token for posting comments'
+    required: true
+  project-dir:
+    description: 'Path to project directory containing i18n.json'
+    required: false
+    default: '.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: 🟢 Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: 📦 Install Lingo-Guardian CLI
+      shell: bash
+      run: |
+        npm install -g lingo-guardian@latest
+        npx playwright install --with-deps chromium
+
+    - name: 📸 Run Visual Audit
+      shell: bash
+      env:
+        LINGODOTDEV_API_KEY: ${{ inputs.lingo-api-key }}
+      run: |
+        lingo-guardian visual ${{ inputs.url }} \
+          --project ${{ inputs.project-dir }} \
+          --output visual-report.png
+
+    - name: 📤 Upload Visual Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: visual-report-${{ github.sha }}
+        path: visual-report.png
+        retention-days: 7
+
+    - name: 💬 Comment on PR
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          // Only comment on PRs
+          if (!context.payload.pull_request) return;
+
+          const artifactUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+          
+          await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `### 🎨 Visual Layout Verification\n\n**Lingo-Guardian** has generated a 4-locale comparison grid (English, Pseudo, Arabic, Japanese).\n\n**[📥 Download Visual Grid Report](${artifactUrl})**\n\n*Check the 'Artifacts' section of the workflow run to view the stitched image.*`
+          });

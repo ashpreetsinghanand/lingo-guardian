@@ -33,10 +33,12 @@
         "postinstall": "npx playwright install chromium --with-deps 2>/dev/null || true"
     },
     "dependencies": {
+        "@types/sharp": "^0.31.1",
         "chalk": "^5.3.0",
         "commander": "^11.1.0",
         "ora": "^8.0.1",
         "playwright": "^1.40.0",
+        "sharp": "^0.34.5",
         "table": "^6.8.1"
     },
     "devDependencies": {

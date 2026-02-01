@@ -1,0 +1,42 @@
+name: "🛡️ Visual PR Guardian"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  visual-audit:
+    name: 🎨 Visual Layout Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 🏗️ Build & Start Demo App
+        run: |
+          cd apps/demo-app
+          npm ci
+          npm run build
+          npm run start &
+          npx wait-on http://localhost:3000
+        env:
+          LINGODOTDEV_API_KEY: ${{ secrets.LINGODOTDEV_API_KEY }}
+
+      # Use the Local Composite Action (packages/action)
+      - name: 📸 Run Visual Audit (Using Composite Action)
+        uses: ./packages/action
+        with:
+          url: 'http://localhost:3000'
+          lingo-api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          project-dir: './apps/demo-app'

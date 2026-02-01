@@ -1,0 +1,20 @@
+{
+    "locale": {
+        "source": "en",
+        "targets": [
+            "pseudo",
+            "de",
+            "ar",
+            "ja"
+        ]
+    },
+    "files": [
+        {
+            "include": [
+                "app/**/*.{ts,tsx,js,jsx}",
+                "components/**/*.{ts,tsx,js,jsx}"
+            ],
+            "output": "locales/{locale}.json"
+        }
+    ]
+}

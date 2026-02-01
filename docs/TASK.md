@@ -14,11 +14,10 @@
 
 ## Feature 2: Visual PR Guardian
 - [x] Add Markdown reporter to CLI
-- [x] Create GitHub Action workflow guide
-- [ ] Implement workflow file in repo (`.github/workflows/lingo-guardian.yml`)
-- [ ] Implement screenshot capture before/after locale changes
-- [ ] Post comparison table as PR comment
-- [ ] Handle pseudo-locale expansion screenshots
+- [x] Add `visual` screenshot stitching command
+- [x] Create Composite GitHub Action (`packages/action`)
+- [x] Create "Zero-Config" Guide (`docs/VISUAL_PR_GUARDIAN.md`)
+- [x] Implement workflow file (`.github/workflows/visual-pr.yml`)
 - [ ] Test with sample PR
 
 ## Phase 3: Reporter Hook (`@lingo-guardian/reporter`)

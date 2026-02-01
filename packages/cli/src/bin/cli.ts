@@ -10,6 +10,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { lintCommand } from '../commands/lint.js';
+import { visualCommand } from '../commands/visual.js';
 import { VERSION, BANNER } from '../constants.js';
 
 const program = new Command();
@@ -24,6 +25,7 @@ program
 
 // Register commands
 program.addCommand(lintCommand);
+program.addCommand(visualCommand);
 
 // Error handling
 program.exitOverride((err) => {

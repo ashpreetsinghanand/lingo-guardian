@@ -1,0 +1,10 @@
+{
+    "name": "@lingo-guardian/action",
+    "version": "0.1.0",
+    "private": true,
+    "description": "GitHub Action for Lingo-Guardian",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}
