@@ -17,11 +17,11 @@ Proposed Changes
 
 ---
 
-### Component 2: Visual PR Guardian (GitHub Action) [IN PROGRESS]
+### Component 2: Visual PR Guardian (GitHub Action) [DONE]
 
 **Goal:** Automate visual verification by generating a 4-locale comparison grid (en, pseudo, ar, ja) stitched into a single image.
 
-#### 1. [NEW] CLI Command: `visual <url>`
+#### 1. [DONE] CLI Command: `visual <url>`
 New command in `@lingo-guardian/cli` that handles the heavy lifting.
 - **Dependencies:** `sharp` (for image processing).
 - **Logic:**
@@ -31,16 +31,15 @@ New command in `@lingo-guardian/cli` that handles the heavy lifting.
   4. Use `sharp` to composite them into a 2x2 grid.
   5. Save as `visual-report.png`.
 
-#### 2. [NEW] GitHub Workflow: `.github/workflows/visual-pr.yml`
+#### 2. [DONE] GitHub Workflow: `.github/workflows/visual-pr.yml`
 - Triggers on Pull Request.
 - Installs CLI.
 - Runs `lingo-guardian visual http://localhost:3000`.
 - Uploads `visual-report.png` as artifact.
 - Comments on PR with download link.
 
-#### 3. [NEW] `apps/demo-app`
-- We need this "Victim App" to actually run the workflow against for the demo.
-- Setup Next.js app with `lingo.dev` pre-configured.
+#### 3. [DONE] `apps/demo-app`
+- "Victim App" created with intentional bugs.
 
 ---Component 3: Reporter Hook (@lingo-guardian/reporter)
 React hook for real-time overflow detection during development.

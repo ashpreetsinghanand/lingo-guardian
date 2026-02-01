@@ -31,4 +31,13 @@ coverage/
 # Temp
 .tmp/
 temp/
+# Temp & Generated Artifacts
 screenshots/
+*.tgz
+*-report.png
+*.png
+i18n.lock
+locales/
+*.tgz
+*-report.png
+*.png

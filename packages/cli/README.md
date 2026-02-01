@@ -58,6 +58,24 @@ lingo-guardian lint http://localhost:3000
 
 ---
 
+## 👁️ Visual PR Guardian (GitHub Action)
+
+Turn every Pull Request into an automated visual audit with the **Zero-Config GitHub Action**:
+
+```yaml
+# .github/workflows/lingo-audit.yml
+- name: 📸 Run Visual Audit
+  uses: ashpreetsinghanand/lingo-guardian/packages/action@main
+  with:
+    url: 'http://localhost:3000'
+    lingo-api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+See [Full Visual PR Guide](https://github.com/ashpreetsinghanand/lingo-guardian/blob/main/docs/VISUAL_PR_GUARDIAN.md) for details.
+
+---
+
 ## ✨ Features
 
 - 🔍 CSS overflow detection (`scrollWidth > offsetWidth`)

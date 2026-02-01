@@ -1,20 +1,20 @@
 {
-    "locale": {
-        "source": "en",
-        "targets": [
-            "pseudo",
-            "de",
-            "ar",
-            "ja"
-        ]
-    },
-    "files": [
-        {
-            "include": [
-                "app/**/*.{ts,tsx,js,jsx}",
-                "components/**/*.{ts,tsx,js,jsx}"
-            ],
-            "output": "locales/{locale}.json"
-        }
+  "$schema": "https://lingo.dev/schema/i18n.json",
+  "version": "1.10",
+  "locale": {
+    "source": "en",
+    "targets": [
+      "de",
+      "ar",
+      "ja",
+      "pseudo"
     ]
+  },
+  "buckets": {
+    "json": {
+      "include": [
+        "locales/[locale].json"
+      ]
+    }
+  }
 }

@@ -90,6 +90,106 @@ npm run dev
 npx @lingo-guardian/cli lint http://localhost:3000
 ```
 
+### 4. Create a Visual Audit Report
+```bash
+npx @lingo-guardian/cli visual http://localhost:3000 --output report.png
+# Generates a stitched image of English, Pseudo, Arabic, and Japanese
+```
+
+---
+
+## 👁️ Visual PR Guardian (GitHub Action)
+
+Turn every Pull Request into an automated visual audit. Lingo-Guardian will:
+1. Spin up your app
+2. Take screenshots in **English**, **Pseudo**, **Arabic**, and **Japanese**
+3. Stitch them into a **2x2 Grid**
+4. **Post a comment** on your PR with the report
+
+### The "Zero-Config" Setup
+
+Create `.github/workflows/lingo-audit.yml` in your repo:
+
+```yaml
+name: 🛡️ Visual PR Guardian
+
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write # Required for posting comments
+
+jobs:
+  visual-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Start Your App (Adjust for your framework)
+      - name: 🏗️ Start App
+        run: |
+          npm ci && npm run build
+          npm run start & 
+          npx wait-on http://localhost:3000
+
+      # 2. Run Lingo Guardian
+      - name: 📸 Run Visual Audit
+        uses: ashpreetsinghanand/lingo-guardian/packages/action@main
+        with:
+          url: 'http://localhost:3000'
+          lingo-api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+**Don't forget to add `LINGODOTDEV_API_KEY` to your Repo Secrets!**
+
+---
+
+## 👁️ Visual PR Guardian (GitHub Action)
+
+Turn every Pull Request into an automated visual audit. Lingo-Guardian will:
+1. Spin up your app
+2. Take screenshots in **English**, **Pseudo**, **Arabic**, and **Japanese**
+3. Stitch them into a **2x2 Grid**
+4. **Post a comment** on your PR with the report
+
+### The "Zero-Config" Setup
+
+Create `.github/workflows/lingo-audit.yml` in your repo:
+
+```yaml
+name: 🛡️ Visual PR Guardian
+
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write # Required for posting comments
+
+jobs:
+  visual-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Start Your App (Adjust for your framework)
+      - name: 🏗️ Start App
+        run: |
+          npm ci && npm run build
+          npm run start & 
+          npx wait-on http://localhost:3000
+
+      # 2. Run Lingo Guardian
+      - name: 📸 Run Visual Audit
+        uses: ashpreetsinghanand/lingo-guardian/packages/action@main
+        with:
+          url: 'http://localhost:3000'
+          lingo-api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+**Don't forget to add `LINGODOTDEV_API_KEY` to your Repo Secrets!**
+
 ---
 
 ## 📖 Usage
