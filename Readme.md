@@ -6,63 +6,98 @@ Detects UI overflows, RTL layout breaks, and missing i18n keys before they reach
 
 ## ⚡ Powered by [Lingo.dev](https://lingo.dev)
 
-**This tool uses Lingo.dev as its core translation engine:**
+---
 
-1. **Detects** your project's `i18n.json` configuration
-2. **Runs** `npx lingo.dev run` to generate translations (including pseudo-locale)
-3. **Audits** your app using the Lingo.dev SDK's `?lang=` URL parameter
-4. **Reports** overflow issues in beautiful table/JSON/HTML formats
+## 📦 Installation
+
+### Option 1: Use as npx (Recommended)
+```bash
+# Run directly without installing
+npx @lingo-guardian/cli lint http://localhost:3000
+```
+
+### Option 2: Install Globally
+```bash
+npm install -g @lingo-guardian/cli
+lingo-guardian lint http://localhost:3000
+```
+
+### Option 3: Add to Your Project
+```bash
+npm install --save-dev @lingo-guardian/cli
+npx lingo-guardian lint http://localhost:3000
+```
 
 ---
 
-## ✨ Features
+## 🔑 Setting Up Lingo.dev API Key
 
-- **🌍 Lingo.dev Integration** - Uses the official CLI and SDK for translations
-- **🔍 CSS Overflow Detection** - Finds buttons that break when text expands
-- **📈 Pseudo-Locale Testing** - 35% text expansion simulation
-- **↔️ RTL Layout Validation** - Tests Arabic, Hebrew, and RTL languages
-- **📊 Beautiful Reports** - Terminal tables, JSON, and HTML output
+Lingo-Guardian uses **Lingo.dev** for AI-powered translations. You need to set up an API key:
+
+### Step 1: Get Your API Key
+
+1. Go to [https://lingo.dev](https://lingo.dev)
+2. Sign up or log in
+3. Navigate to **Settings → API Keys**
+4. Create a new API key
+
+### Step 2: Configure Your API Key
+
+**Option A: Environment Variable (Recommended)**
+```bash
+# Add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
+export LINGODOTDEV_API_KEY="your-api-key-here"
+```
+
+**Option B: .env File**
+```bash
+# Create a .env file in your project root
+echo "LINGODOTDEV_API_KEY=your-api-key-here" > .env
+```
+
+**Option C: Pass Directly (CI/CD)**
+```bash
+LINGODOTDEV_API_KEY=your-key npx lingo-guardian lint http://localhost:3000
+```
+
+### Step 3: Initialize Lingo.dev in Your Project
+
+```bash
+cd your-project
+npx lingo.dev@latest init
+```
+
+This creates an `i18n.json` configuration file that Lingo-Guardian will use.
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-1. Install Lingo.dev in your project:
-   ```bash
-   npx lingo.dev@latest init
-   ```
-
-2. Install Lingo-Guardian:
-   ```bash
-   npm install @lingo-guardian/cli
-   ```
-
-### Run the Audit
-
+### 1. Initialize Lingo.dev in Your Project
 ```bash
-# From your project directory (with i18n.json)
-npx lingo-guardian lint http://localhost:3000
+cd your-react-app
+npx lingo.dev@latest init
+```
+
+### 2. Start Your Dev Server
+```bash
+npm run dev
+# App running at http://localhost:3000
+```
+
+### 3. Run Lingo-Guardian Audit
+```bash
+npx @lingo-guardian/cli lint http://localhost:3000
 ```
 
 ---
 
 ## 📖 Usage
 
-### Basic Audit (Uses Lingo.dev)
+### Basic Audit
 ```bash
-# This will:
-# 1. Detect i18n.json in current directory
-# 2. Run `npx lingo.dev run` to generate translations
-# 3. Audit with ?lang=pseudo URL param
-
+# Audits with default locales (en, pseudo)
 lingo-guardian lint http://localhost:3000
-```
-
-### Specify Project Path
-```bash
-lingo-guardian lint http://localhost:3000 --project ./my-react-app
 ```
 
 ### Test Multiple Locales
@@ -70,9 +105,14 @@ lingo-guardian lint http://localhost:3000 --project ./my-react-app
 lingo-guardian lint http://localhost:3000 --locale en pseudo ar de
 ```
 
-### Skip Lingo.dev Integration
+### Generate HTML Report
 ```bash
-lingo-guardian lint http://localhost:3000 --no-use-lingo
+lingo-guardian lint http://localhost:3000 --format html --output ./reports
+```
+
+### CI/CD Mode (Exit with Error)
+```bash
+lingo-guardian lint http://localhost:3000 --fail-on-error
 ```
 
 ### Full Options
@@ -87,40 +127,24 @@ Options:
   -s, --screenshot            Capture screenshots of issues
   -o, --output <dir>          Output directory for reports
   --fail-on-error             Exit with error code if issues found (for CI)
+  -w, --width <pixels>        Viewport width (default: 1280)
+  --height <pixels>           Viewport height (default: 720)
+  -t, --timeout <ms>          Page load timeout (default: 30000)
   -v, --verbose               Enable verbose logging
 ```
 
 ---
 
-## 🏗️ Architecture
-
-```
-lingo-guardian/
-├── packages/
-│   └── cli/
-│       ├── src/
-│       │   ├── core/
-│       │   │   ├── auditor.ts          # Puppeteer overflow detection
-│       │   │   └── lingo-integration.ts # 🔥 Lingo.dev CLI wrapper
-│       │   ├── transforms/
-│       │   │   ├── pseudo-locale.ts    # Text expansion (fallback)
-│       │   │   └── rtl.ts              # RTL layout testing
-│       │   ├── reporters/              # Table/JSON/HTML output
-│       │   └── commands/linq.ts        # Main CLI command
-```
-
----
-
-## 🔧 The "Lingo-Native" Flow
+## 🏗️ How It Works
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  1. DETECT: Find i18n.json / lingo.config.js                │
+│  1. DETECT: Find i18n.json in your project                  │
 ├─────────────────────────────────────────────────────────────┤
-│  2. RUN: Execute `npx lingo.dev run` to generate locales    │
-│     → Creates locales/pseudo.json, locales/ar.json, etc.    │
+│  2. RUN: Execute `npx lingo.dev run` (uses your API key)    │
+│     → Generates locales/pseudo.json, locales/ar.json, etc.  │
 ├─────────────────────────────────────────────────────────────┤
-│  3. AUDIT: Load app with ?lang=pseudo via Puppeteer         │
+│  3. AUDIT: Load app with ?lang=pseudo via Playwright        │
 │     → Lingo SDK reads URL param and switches locale         │
 ├─────────────────────────────────────────────────────────────┤
 │  4. DETECT: Check scrollWidth > offsetWidth (Red Glow)      │
@@ -131,29 +155,62 @@ lingo-guardian/
 
 ---
 
-## 🎯 How It Works
+## � Cross-Platform Support
 
-### Core Integration with Lingo.dev
+Works on **Mac, Windows, and Linux** using Playwright:
 
-```typescript
-import { LingoIntegration } from '@lingo-guardian/cli';
+| Platform | Status |
+|----------|--------|
+| macOS | ✅ Verified |
+| Windows | ✅ Supported |
+| Linux | ✅ Supported |
 
-// 1. Detect config
-const lingo = new LingoIntegration('/path/to/project');
-await lingo.detectConfig();
+---
 
-// 2. Run Lingo CLI
-await lingo.runTranslation({ locale: 'pseudo' });
+## 📋 Example Output
 
-// 3. Audit with locale URL
-await auditor.audit('http://localhost:3000?lang=pseudo');
+```
+╔═══════════════════════════════════════════════════════════╗
+║   🛡️  LINGO-GUARDIAN                                      ║
+║   Powered by Lingo.dev                                    ║
+╚═══════════════════════════════════════════════════════════╝
+
+📊 Summary
+   URL: http://localhost:3000/?lang=pseudo
+   Locales tested: en, pseudo, ar
+   Total issues: 3
+   Errors: 1
+   Warnings: 2
+
+┌─────────┬────────────────────┬───────────┬──────────┐
+│ Locale  │ Selector           │ Overflow  │ Severity │
+├─────────┼────────────────────┼───────────┼──────────┤
+│ pseudo  │ .nav-button        │ horizontal│ error    │
+│ pseudo  │ #submit-btn        │ horizontal│ warning  │
+│ ar      │ .sidebar-title     │ horizontal│ warning  │
+└─────────┴────────────────────┴───────────┴──────────┘
 ```
 
-### The "Red Glow" Detection
+---
 
-```javascript
-// If content is wider than container = OVERFLOW
-element.scrollWidth > element.offsetWidth
+## 🔧 Configuration
+
+### i18n.json (Lingo.dev Config)
+
+```json
+{
+  "$schema": "https://lingo.dev/schema/i18n.json",
+  "version": "1.10",
+  "locale": {
+    "source": "en",
+    "targets": ["es", "de", "ar", "pseudo"]
+  },
+  "buckets": {
+    "json": {
+      "include": ["locales/[locale].json"]
+    }
+  }
+}
 ```
 
 ---
@@ -166,17 +223,21 @@ element.scrollWidth > element.offsetWidth
 
 ---
 
-## 📦 Scripts
+## 📦 Development
 
 ```bash
-# Install all dependencies
+# Clone the repo
+git clone https://github.com/your-org/lingo-guardian.git
+cd lingo-guardian
+
+# Install dependencies
 npm install
 
 # Build CLI
 npm run build --workspace=@lingo-guardian/cli
 
-# Run lint
-npx lingo-guardian lint http://localhost:3000
+# Run locally
+node packages/cli/dist/bin/cli.js lint http://localhost:3000
 ```
 
 ---
