@@ -74,6 +74,45 @@ npx lingo-guardian lint http://localhost:3000 --locale de ar
 
 ---
 
+
+## 🖥️ Live Dashboard (The "Wow" View)
+
+Simulate user testing across multiple locales simultaneously with the **Lingo-Guardian Dashboard**.
+
+```bash
+npx lingo-guardian dashboard http://localhost:3000
+```
+*(Default port: 3005)*
+
+This launches a local server displaying your app in **4 parallel iframes**:
+1.  🇺🇸 **English** (Source)
+2.  🇩🇪 **Pseudo** (Expansion Testing)
+3.  🇦🇪 **Arabic** (RTL Layout Testing)
+4.  🇯🇵 **Japanese** (Vertical/Font Testing)
+
+**Real-Time Sync**: If you use the `@lingo-guardian/reporter` hook in your app, any overflow detected in these panes will trigger a visual "Red Alert" on the dashboard.
+
+## 🪝 Developer Experience: The Reporter Hook
+
+Install the companion hook to see issues **as you code**:
+
+```bash
+npm install @lingo-guardian/reporter
+```
+
+Add it to your app (see [Reporter Docs](https://www.npmjs.com/package/@lingo-guardian/reporter)):
+
+```tsx
+useLingoGuardian({ enable: process.env.NODE_ENV === 'development' });
+```
+
+features:
+- **Red Glow**: Overflows get outlined in red instantly.
+- **VS Code Links**: Clickable links in console to jump to source.
+- **Zero Config**: Works out of the box.
+
+---
+
 ## 🤖 Visual PR Guardian (GitHub Action)
 
 Turn every Pull Request into an automated visual audit. This action runs the audit and posts a **Visual Report** directly to the PR comments.

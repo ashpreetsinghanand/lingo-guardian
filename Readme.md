@@ -326,6 +326,38 @@ Works on **Mac, Windows, and Linux** using Playwright:
 
 ---
 
+## 🚀 How to Demo (The "Wow" Factor)
+
+1.  **Start your App**:
+    ```bash
+    cd apps/demo-app
+    npm run dev
+    ```
+
+2.  **Launch the Dashboard**:
+    ```bash
+    npx lingo-guardian dashboard http://localhost:3000
+    ```
+
+3.  **Open the Dashboard**: Go to `http://localhost:3005`. You will see 4 synced views of your app.
+
+4.  **Trigger a Bug**:
+    - Go to `apps/demo-app/app/page.tsx`.
+    - Make a text string really long (e.g., change "Submit" to "Submit and Pay Immediately").
+    - **Save**.
+
+5.  **Watch the Magic**:
+    - The Pseudo/German pane will break.
+    - The Dashboard will flash **RED**.
+    - Your console will log the exact file/line number of the component.
+
+## 📦 Packages
+
+- **[`@lingo-guardian/cli`](./packages/cli)**: The core audit tool and dashboard server.
+- **[`@lingo-guardian/reporter`](./packages/reporter)**: The React hook for real-time detection.
+
+---
+
 ## 📦 Development
 
 ```bash

@@ -11,6 +11,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { lintCommand } from '../commands/lint.js';
 import { visualCommand } from '../commands/visual.js';
+import { dashboardCommand } from '../commands/dashboard.js';
 import { VERSION, BANNER } from '../constants.js';
 
 const program = new Command();
@@ -20,12 +21,13 @@ console.log(chalk.cyan(BANNER));
 
 program
     .name('lingo-guardian')
-    .description('The Automated DevSecOps Firewall for Internationalization')
+    .description('Automated i18n Layout Firewall')
     .version(VERSION, '-v, --version', 'Display version number');
 
 // Register commands
 program.addCommand(lintCommand);
 program.addCommand(visualCommand);
+program.addCommand(dashboardCommand);
 
 // Error handling
 program.exitOverride((err) => {

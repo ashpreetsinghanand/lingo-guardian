@@ -169,15 +169,19 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
 
         // STEP 5: Audit each locale
         for (const locale of options.locale) {
-            // Build URL with locale query param for Lingo SDK integration
-            const localeUrl = buildLocaleUrl(url, locale);
-            spinner.text = `Auditing with locale: ${chalk.cyan(locale.toUpperCase())}...`;
+            spinner.text = `Auditing ${locale.toUpperCase()}...`;
+
+            // Support dynamic URL patterns (e.g., http://localhost:3000?lang={locale})
+            // If {locale} is present, replace it directly. Otherwise, use buildLocaleUrl to add ?lang=locale.
+            const auditUrl = url.includes('{locale}')
+                ? url.replace('{locale}', locale)
+                : buildLocaleUrl(url, locale);
 
             if (options.verbose) {
-                console.log(chalk.gray(`  URL: ${localeUrl}`));
+                console.log(chalk.gray(`  URL: ${auditUrl}`));
             }
 
-            const result = await auditor.audit(localeUrl, locale);
+            const result = await auditor.audit(auditUrl, locale);
             results.push(result);
 
             if (options.verbose) {
