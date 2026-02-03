@@ -30,7 +30,7 @@ export default async function Home(props: { searchParams: Promise<{ lang?: strin
           style={{ width: '140px', whiteSpace: 'nowrap', overflow: 'hidden' }}
         >
           <h2 className={`mb-3 text-2xl font-semibold`}>
-            {t("Sub")}
+            {t("Submit Order")}
             <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
               -&gt;
             </span>
