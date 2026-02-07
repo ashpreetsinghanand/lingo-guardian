@@ -1,0 +1,33 @@
+## Introduction
+Lingo.dev CLI is a free, open-source CLI for translating apps and content with AI. It’s designed to replace traditional translation management software while integrating with existing pipelines.
+To get up and running, read the [Quickstart](https://lingo.dev/en/cli/quick-start) guide.
+
+## Why Lingo.dev CLI?
+- Supports all major LLM providers, such as OpenAI and Anthropic.
+- Supports all industry-standard formats, such as [CSV](https://lingo.dev/en/cli/formats/csv), [JSON](https://lingo.dev/en/cli/formats/json), and [PO](https://lingo.dev/en/cli/formats/po) files.
+- Integrates with [CI/CD](https://lingo.dev/en/ci) pipelines for continuous translation.
+[CSV](https://lingo.dev/en/cli/formats/csv)
+[JSON](https://lingo.dev/en/cli/formats/json)
+[PO](https://lingo.dev/en/cli/formats/po)
+[CI/CD](https://lingo.dev/en/ci)
+
+## How it works
+At a high-level, Lingo.dev CLI:
+1. Extracts translatable content from a variety of file formats.
+2. Sends the extracted content to an LLM provider for translation.
+3. Writes the changes back to the file system.
+4. Keeps track of what's been translated to prevent unnecessary retranslation.
+For a deeper dive into each of these steps, see [How it works](https://lingo.dev/en/cli/how-it-works).
+
+## Looking for help?
+If you’re not sure if Lingo.dev CLI is the right fit for you, or if you need any other kind of help, ask a question in [our Discord community](https://discord.com/channels/1193198600298172486/1197646830138306720).
+
+## On this page
+- [Introduction](https://lingo.dev/en/cli#introduction)
+- [Why Lingo.dev CLI?](https://lingo.dev/en/cli#why-lingodev-cli)
+- [How it works](https://lingo.dev/en/cli#how-it-works)
+- [Looking for help?](https://lingo.dev/en/cli#looking-for-help)
+[Introduction](https://lingo.dev/en/cli#introduction)
+[Why Lingo.dev CLI?](https://lingo.dev/en/cli#why-lingodev-cli)
+[How it works](https://lingo.dev/en/cli#how-it-works)
+[Looking for help?](https://lingo.dev/en/cli#looking-for-help)

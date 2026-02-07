@@ -81,6 +81,12 @@ export interface OverflowIssue {
         width: number;
         height: number;
     };
+    /** Source file path (React dev mode only) */
+    sourceFile?: string;
+    /** Source line number (React dev mode only) */
+    sourceLine?: number;
+    /** React component name (React dev mode only) */
+    componentName?: string;
 }
 
 /**

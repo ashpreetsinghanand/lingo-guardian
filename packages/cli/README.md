@@ -113,6 +113,87 @@ features:
 
 ---
 
+## 📍 Source Location Detection (v0.1.11+)
+
+The CLI now shows **component names and line numbers** in the audit output. This works with **any frontend framework**:
+
+| Framework | Detection Method |
+|-----------|------------------|
+| React (CRA/Vite) | `_debugSource` from React Fiber |
+| Angular | `ng-reflect-*`, `_ngcontent-*`, custom tag names |
+| Vue | `data-v-*` scoped style attributes |
+| **Any Framework** | `data-source`, `data-testid`, `id` attributes |
+
+### Explicit Source Mapping (Recommended)
+
+Add `data-source` attributes to your components for 100% reliable detection:
+
+```tsx
+<div 
+  data-source="src/components/Card.tsx:42"
+  data-component="Card"
+>
+  {/* content */}
+</div>
+```
+
+**CLI Output:**
+```
+│ Source          │
+├─────────────────┤
+│ Card:42         │
+```
+
+---
+
+## 🌍 Interactive Language Selection (v0.1.12+)
+
+The CLI now provides an **interactive experience** for selecting languages to test:
+
+### Quick Selection Options
+```
+? How would you like to select languages?
+❯ Quick: Source only (en)
+  Quick: All from config (en, de, ar, ja, pseudo)
+  Quick: en + pseudo (testing)
+  Custom: Select from ALL lingo.dev languages ↓
+```
+
+### Custom Selection (70+ Languages)
+Choose **Custom** to see all 70+ languages supported by Lingo.dev:
+```
+? Select languages to test (72 available):
+ ◉ en - English ✓ (configured)
+ ◉ de - German ✓ (configured)
+ ◉ ar - Arabic ✓ (configured)
+ ◯ hi - Hindi
+ ◯ zh - Chinese
+ ...
+```
+
+- **Configured languages** are marked with `✓ (configured)`
+- If you select unconfigured languages, you'll see a warning:
+```
+⚠ Warning: The following languages are NOT in your i18n.json config:
+   hi
+   Lingo.dev won't generate translations for these.
+   Add them to i18n.json targets to enable translations.
+```
+
+### English Reference Column
+For non-English locales, the output now shows the **original English text** alongside the translated text:
+
+```
+┌───┬──────────┬──────────┬─────────────────┬────────────────────────────┬────────────────────┐
+│ # │ Severity │ Overflow │ Source          │ Text                       │ English            │
+├───┼──────────┼──────────┼─────────────────┼────────────────────────────┼────────────────────┤
+│ 1 │ ● ERROR  │ ↔ +56px  │ app/page.tsx:62 │ 今すぐチェックアウト。     │ Checkout now.      │
+└───┴──────────┴──────────┴─────────────────┴────────────────────────────┴────────────────────┘
+```
+This helps developers identify which English string is causing the overflow, even when viewing Japanese/German/Arabic translations.
+
+---
+
 ## 🤖 Visual PR Guardian (GitHub Action)
 
 Turn every Pull Request into an automated visual audit. This action runs the audit and posts a **Visual Report** directly to the PR comments.

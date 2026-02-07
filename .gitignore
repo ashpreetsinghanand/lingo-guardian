@@ -41,3 +41,5 @@ locales/
 *.tgz
 *-report.png
 *.png
+
+.next/

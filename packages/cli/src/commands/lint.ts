@@ -12,10 +12,15 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { select, checkbox } from '@inquirer/prompts';
 import { Auditor } from '../core/auditor.js';
 import { LingoIntegration } from '../core/lingo-integration.js';
+import { SourceFinder } from '../core/source-finder.js';
+import { TranslationMapper } from '../core/translation-mapper.js';
 import { Reporter, OutputFormat } from '../reporters/reporter.js';
-import { DEFAULTS, EXIT_CODES, LintOptions } from '../constants.js';
+import { DEFAULTS, EXIT_CODES, LintOptions, AuditResult } from '../constants.js';
 
 export interface ExtendedLintOptions extends LintOptions {
     /** Project directory containing i18n.json */
@@ -96,27 +101,15 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
         spinner.text = 'Detecting Lingo.dev configuration...';
         const hasConfig = await lingo.detectConfig();
 
-        // RESOLVE LOCALES EARLY
+        // RESOLVE LOCALES: Interactive Selection
         // ----------------------------------------------------------------
-        let locales: string[] = [];
+        // If no CLI locales specified, prompt user interactively
+        const configLocales = lingo.getConfig()?.locale.targets || [];
+        const sourceLocale = lingo.getConfig()?.locale.source || 'en';
 
-        if (options.locale && options.locale.length > 0) {
-            // Priority 1: User specified locales
-            locales = options.locale;
-        } else if (lingo.getConfig()) {
-            // Priority 2: Auto-detect from config (if exists)
-            const targets = lingo.getTargetLocales();
-            // Priority 3: Auto-detect from config targets
-            if (targets.length > 0) {
-                console.log(chalk.blue(`\nℹ  Auto-detected locales from i18n.json: ${targets.join(', ')}`));
-                locales = ['en', ...targets];
-            } else {
-                locales = ['en', 'pseudo'];
-            }
-        } else {
-            // Priority 4: Fallback default
-            locales = ['en', 'pseudo'];
-        }
+        spinner.stop();
+        const locales = await promptLanguageSelection(sourceLocale, configLocales, options.locale);
+        spinner.start();
 
         // Update options reference so downstream checks work
         options.locale = locales;
@@ -167,8 +160,16 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
 
         const results = [];
 
-        // STEP 5: Audit each locale
-        for (const locale of options.locale) {
+        // STEP 5: Scan project source files for text locations
+        const sourceFinder = new SourceFinder(projectPath);
+        await sourceFinder.scan();
+
+        // STEP 5b: Load translation mapper for English reference
+        const translationMapper = new TranslationMapper(projectPath);
+        await translationMapper.load();
+
+        // STEP 6: Audit each selected locale
+        for (const locale of locales) {
             spinner.text = `Auditing ${locale.toUpperCase()}...`;
 
             // Support dynamic URL patterns (e.g., http://localhost:3000?lang={locale})
@@ -182,6 +183,33 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
             }
 
             const result = await auditor.audit(auditUrl, locale);
+
+            // Enrich issues with source location and English text
+            for (const issue of result.issues) {
+                // Find source location
+                const sourceLocation = sourceFinder.findSource(issue.textContent);
+                if (sourceLocation) {
+                    issue.sourceFile = sourceLocation.file;
+                    issue.sourceLine = sourceLocation.line;
+                }
+
+                // Find English original for non-English locales
+                if (locale !== 'en') {
+                    const englishEntry = translationMapper.findEnglishOriginal(issue.textContent, locale);
+                    if (englishEntry) {
+                        (issue as any).englishText = englishEntry.englishText;
+                        // Use English text to find source if not already found
+                        if (!issue.sourceFile) {
+                            const engSource = sourceFinder.findSource(englishEntry.englishText);
+                            if (engSource) {
+                                issue.sourceFile = engSource.file;
+                                issue.sourceLine = engSource.line;
+                            }
+                        }
+                    }
+                }
+            }
+
             results.push(result);
 
             if (options.verbose) {
@@ -194,8 +222,14 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
         await auditor.close();
         spinner.succeed('Audit complete!');
 
+        // Ask user for display mode
+        const displayMode = await promptDisplayMode();
+
+        // Deduplicate if user chose mode 2
+        const processedResults = displayMode === 2 ? deduplicateResults(results) : results;
+
         // Print results
-        reporter.print(results);
+        reporter.print(processedResults);
 
         // Print Lingo.dev integration note
         console.log(
@@ -204,7 +238,7 @@ async function runLintAudit(url: string, options: ExtendedLintOptions): Promise<
 
         // Save report if output format is json, html, or markdown
         if (options.format === 'json' || options.format === 'html' || options.format === 'markdown') {
-            await reporter.save(results, options.output);
+            await reporter.save(processedResults, options.output);
         }
 
         // Exit with error if issues found and failOnError is set
@@ -244,4 +278,258 @@ function buildLocaleUrl(baseUrl: string, locale: string): string {
     url.searchParams.set('lang', locale);
 
     return url.toString();
+}
+
+/**
+ * Prompt user to select display mode using inquirer
+ */
+async function promptDisplayMode(): Promise<1 | 2> {
+    console.log(); // Add spacing
+    const mode = await select({
+        message: 'How would you like to display issues?',
+        choices: [
+            { name: 'Show all issues (default)', value: 1 as const },
+            { name: 'Deduplicate by source (group similar)', value: 2 as const },
+        ],
+    });
+
+    if (mode === 2) {
+        console.log(chalk.gray('→ Showing deduplicated issues\n'));
+    } else {
+        console.log(chalk.gray('→ Showing all issues\n'));
+    }
+    return mode;
+}
+
+/**
+ * Deduplicate results by grouping issues with same source
+ * Keeps only the highest severity issue for each source
+ */
+function deduplicateResults(results: AuditResult[]): AuditResult[] {
+    const severityOrder: Record<string, number> = { error: 3, warning: 2, info: 1 };
+
+    return results.map((result) => {
+        const sourceMap = new Map<string, typeof result.issues[0]>();
+
+        for (const issue of result.issues) {
+            const key = issue.sourceFile && issue.sourceLine
+                ? `${issue.sourceFile}:${issue.sourceLine}`
+                : issue.textContent;
+
+            const existing = sourceMap.get(key);
+            if (!existing || severityOrder[issue.severity] > severityOrder[existing.severity]) {
+                sourceMap.set(key, issue);
+            }
+        }
+
+        const deduplicatedIssues = Array.from(sourceMap.values());
+
+        return {
+            ...result,
+            issues: deduplicatedIssues,
+            issueCount: deduplicatedIssues.length,
+        };
+    });
+}
+
+/**
+ * All languages supported by Lingo.dev (80+ locales)
+ * Reference: https://lingo.dev/docs
+ */
+const ALL_LANGUAGES: Record<string, string> = {
+    // Major World Languages
+    'en': 'English',
+    'es': 'Spanish',
+    'zh': 'Chinese',
+    'hi': 'Hindi',
+    'ar': 'Arabic',
+    'pt': 'Portuguese',
+    'bn': 'Bengali',
+    'ru': 'Russian',
+    'ja': 'Japanese',
+    'pa': 'Punjabi',
+    'de': 'German',
+    'ko': 'Korean',
+    'fr': 'French',
+    'vi': 'Vietnamese',
+    'te': 'Telugu',
+    'tr': 'Turkish',
+    'ta': 'Tamil',
+    'it': 'Italian',
+    'th': 'Thai',
+    'pl': 'Polish',
+    'nl': 'Dutch',
+    'uk': 'Ukrainian',
+    'id': 'Indonesian',
+    'ms': 'Malay',
+    'ro': 'Romanian',
+    'el': 'Greek',
+    'cs': 'Czech',
+    'hu': 'Hungarian',
+    'sv': 'Swedish',
+    'he': 'Hebrew',
+    'da': 'Danish',
+    'fi': 'Finnish',
+    'no': 'Norwegian',
+    'sk': 'Slovak',
+    'bg': 'Bulgarian',
+    'hr': 'Croatian',
+    'lt': 'Lithuanian',
+    'sl': 'Slovenian',
+    'lv': 'Latvian',
+    'et': 'Estonian',
+    'sr': 'Serbian',
+    'ca': 'Catalan',
+    'af': 'Afrikaans',
+    'sw': 'Swahili',
+    'fa': 'Persian',
+    'ur': 'Urdu',
+    // Regional Variants
+    'en-US': 'English (US)',
+    'en-GB': 'English (UK)',
+    'en-AU': 'English (Australia)',
+    'es-ES': 'Spanish (Spain)',
+    'es-MX': 'Spanish (Mexico)',
+    'es-419': 'Spanish (Latin America)',
+    'pt-BR': 'Portuguese (Brazil)',
+    'pt-PT': 'Portuguese (Portugal)',
+    'zh-CN': 'Chinese (Simplified)',
+    'zh-TW': 'Chinese (Traditional)',
+    'fr-FR': 'French (France)',
+    'fr-CA': 'French (Canada)',
+    'de-DE': 'German (Germany)',
+    'de-AT': 'German (Austria)',
+    'de-CH': 'German (Switzerland)',
+    // Testing
+    'pseudo': 'Pseudo-locale (testing)',
+};
+
+/**
+ * Prompt user to select which languages to test using inquirer
+ */
+async function promptLanguageSelection(
+    sourceLocale: string,
+    configLocales: string[],
+    cliLocales?: string[]
+): Promise<string[]> {
+    // If CLI specified locales, use those directly
+    if (cliLocales && cliLocales.length > 0) {
+        return cliLocales;
+    }
+
+    const allAvailableLocales = [sourceLocale, ...configLocales];
+    const formatLocale = (code: string) => ALL_LANGUAGES[code] || code;
+
+    console.log(chalk.bold('\n🌍 Language Selection:'));
+    console.log(chalk.gray(`   Source: ${formatLocale(sourceLocale)}`));
+    console.log(chalk.gray(`   Targets: ${configLocales.map(formatLocale).join(', ') || 'none detected'}\n`));
+
+    // First prompt: Quick select or custom
+    const mode = await select({
+        message: 'How would you like to select languages?',
+        choices: [
+            { name: `Quick: Source only (${sourceLocale})`, value: 'source' },
+            { name: `Quick: All from config (${allAvailableLocales.join(', ')})`, value: 'all' },
+            { name: `Quick: ${sourceLocale} + pseudo (testing)`, value: 'pseudo' },
+            { name: 'Custom: Select from ALL lingo.dev languages ↓', value: 'custom' },
+        ],
+    });
+
+    switch (mode) {
+        case 'source':
+            console.log(chalk.gray(`→ Testing: ${sourceLocale}\n`));
+            return [sourceLocale];
+        case 'all':
+            console.log(chalk.gray(`→ Testing: ${allAvailableLocales.join(', ')}\n`));
+            return allAvailableLocales;
+        case 'pseudo':
+            console.log(chalk.gray(`→ Testing: ${sourceLocale}, pseudo\n`));
+            return [sourceLocale, 'pseudo'];
+        case 'custom':
+            // Get all languages from lingo.dev CLI
+            console.log(chalk.gray('   Fetching languages from lingo.dev...'));
+            const allLingoLanguages = await getLingoDevLanguages();
+
+            // Merge config locales with all primary lingo.dev languages
+            const uniqueLanguages = new Set([...allAvailableLocales, ...allLingoLanguages]);
+            const sortedLanguages = Array.from(uniqueLanguages).sort((a, b) => {
+                // Put config languages first
+                const aInConfig = allAvailableLocales.includes(a);
+                const bInConfig = allAvailableLocales.includes(b);
+                if (aInConfig && !bInConfig) return -1;
+                if (!aInConfig && bInConfig) return 1;
+                return formatLocale(a).localeCompare(formatLocale(b));
+            });
+
+            // Show checkbox for custom selection
+            const selected = await checkbox({
+                message: `Select languages to test (${sortedLanguages.length} available):`,
+                choices: sortedLanguages.map(code => ({
+                    name: allAvailableLocales.includes(code)
+                        ? `${code} - ${formatLocale(code)} ✓ (configured)`
+                        : `${code} - ${formatLocale(code)}`,
+                    value: code,
+                    checked: allAvailableLocales.includes(code), // Pre-check config locales
+                })),
+                pageSize: 15,
+            });
+
+            const result = selected.length > 0 ? selected : [sourceLocale];
+
+            // Warn about unconfigured languages
+            const unconfiguredSelected = result.filter(lang =>
+                !allAvailableLocales.includes(lang)
+            );
+
+            if (unconfiguredSelected.length > 0) {
+                console.log(chalk.yellow(`\n⚠ Warning: The following languages are NOT in your i18n.json config:`));
+                console.log(chalk.yellow(`   ${unconfiguredSelected.join(', ')}`));
+                console.log(chalk.yellow(`   Lingo.dev won't generate translations for these.`));
+                console.log(chalk.yellow(`   Add them to i18n.json targets to enable translations.\n`));
+
+                // Filter to only configured languages
+                const configuredSelected = result.filter(lang =>
+                    allAvailableLocales.includes(lang)
+                );
+
+                if (configuredSelected.length === 0) {
+                    console.log(chalk.gray(`→ No configured languages selected. Using source: ${sourceLocale}\n`));
+                    return [sourceLocale];
+                }
+
+                console.log(chalk.gray(`→ Testing configured languages only: ${configuredSelected.join(', ')}\n`));
+                return configuredSelected;
+            }
+
+            console.log(chalk.gray(`→ Testing: ${result.join(', ')}\n`));
+            return result;
+        default:
+            return [sourceLocale];
+    }
+}
+
+/**
+ * Get all supported languages from lingo.dev CLI
+ * Filters to primary language codes (not regional variants like en-US)
+ */
+async function getLingoDevLanguages(): Promise<string[]> {
+    const execAsync = promisify(exec);
+    try {
+        const { stdout } = await execAsync('npx lingo.dev@latest show locale targets', {
+            timeout: 30000,
+        });
+        const allLocales = stdout.trim().split('\n').filter(Boolean);
+
+        // Filter to primary language codes (2-3 letters, no region)
+        const primaryLocales = allLocales.filter(locale => {
+            // Keep only simple codes like 'en', 'es', 'zh', not 'en-US', 'zh-CN'
+            return /^[a-z]{2,3}$/.test(locale) || locale === 'pseudo';
+        });
+
+        // Remove duplicates and sort
+        return [...new Set(primaryLocales)].sort();
+    } catch (error) {
+        // Fallback to hardcoded list if CLI fails
+        return Object.keys(ALL_LANGUAGES).filter(code => !code.includes('-'));
+    }
 }

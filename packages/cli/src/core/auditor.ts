@@ -43,6 +43,9 @@ interface EvaluateIssue {
     severity: 'error' | 'warning' | 'info';
     suggestion?: string;
     boundingRect: { x: number; y: number; width: number; height: number };
+    sourceFile?: string;
+    sourceLine?: number;
+    componentName?: string;
 }
 
 /**
@@ -270,6 +273,9 @@ export class Auditor {
                         suggestion = 'Try: h-auto, line-clamp, or overflow-y-auto';
                     }
 
+                    // Extract component/source info (framework-agnostic)
+                    const source = getComponentSource(htmlEl);
+
                     results.push({
                         selector,
                         tagName: el.tagName.toLowerCase(),
@@ -287,8 +293,86 @@ export class Auditor {
                             width: rect.width,
                             height: rect.height,
                         },
+                        sourceFile: source?.fileName,
+                        sourceLine: source?.lineNumber,
+                        componentName: source?.componentName,
                     });
                 }
+            }
+
+            /**
+             * Framework-agnostic source detection
+             * ONLY returns source info when we have ACTUAL file paths.
+             * Component names without file paths are not useful and are filtered out.
+             * 
+             * Priority:
+             * 1. data-source="file:line" (explicit, works everywhere)
+             * 2. React Fiber _debugSource (when available - Webpack builds)
+             * 3. data-testid / data-component as component name
+             * 4. Element id as identifier
+             */
+            function getComponentSource(element: HTMLElement): { fileName?: string; lineNumber?: number; componentName?: string } | null {
+                // List of React/Next.js internal component names to ignore
+                const INTERNAL_COMPONENTS = [
+                    'SegmentViewNode', 'OuterLayoutRouter', 'InnerLayoutRouter',
+                    'AppRouter', 'HotReload', 'ErrorBoundary', 'Suspense',
+                    'RenderFromTemplateContext', 'ScrollAndFocusHandler',
+                    'RedirectBoundary', 'NotFoundBoundary', 'LoadingBoundary'
+                ];
+
+                // 1. Explicit data-source attribute (most reliable, framework-agnostic)
+                const dataSource = element.getAttribute('data-source');
+                if (dataSource) {
+                    const match = dataSource.match(/^(.+):(\d+)$/);
+                    if (match) {
+                        const file = match[1];
+                        const line = parseInt(match[2]);
+                        const component = element.getAttribute('data-component') || file.split('/').pop()?.replace(/\.\w+$/, '');
+                        return { fileName: file, lineNumber: line, componentName: component };
+                    }
+                }
+
+                // 2. Try React Fiber _debugSource (works with Webpack/Babel builds, NOT Turbopack)
+                const fiberKey = Object.keys(element).find((key) =>
+                    key.startsWith('__reactFiber$') || key.startsWith('__reactInternalInstance$')
+                );
+                if (fiberKey) {
+                    let fiber = (element as any)[fiberKey];
+                    while (fiber) {
+                        const source = fiber._debugSource;
+                        if (source && source.fileName) {
+                            const type = fiber.type;
+                            let componentName: string | undefined;
+                            if (typeof type === 'string') componentName = type;
+                            else if (typeof type === 'function') {
+                                const name = type.displayName || type.name;
+                                // Filter out internal components
+                                if (name && !INTERNAL_COMPONENTS.includes(name)) {
+                                    componentName = name;
+                                }
+                            }
+                            return { fileName: source.fileName, lineNumber: source.lineNumber, componentName };
+                        }
+                        fiber = fiber._debugOwner || fiber.return;
+                    }
+                }
+
+                // 3. Check for useful identifiers (but no file path)
+                const testId = element.getAttribute('data-testid') || element.getAttribute('data-test-id');
+                const componentAttr = element.getAttribute('data-component');
+
+                if (componentAttr) {
+                    return { componentName: componentAttr };
+                }
+                if (testId) {
+                    return { componentName: testId };
+                }
+                if (element.id) {
+                    return { componentName: `#${element.id}` };
+                }
+
+                // No useful source info found
+                return null;
             }
 
             function generateSelector(el: Element): string {

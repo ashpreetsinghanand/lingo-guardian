@@ -69,19 +69,39 @@ export class Reporter {
 
             const tableData = [
                 [
+                    chalk.bold('#'),
                     chalk.bold('Severity'),
-                    chalk.bold('Element'),
                     chalk.bold('Overflow'),
+                    chalk.bold('Source'),
                     chalk.bold('Text'),
-                    chalk.bold('Fix Suggestions'),
+                    chalk.bold('English'),
                 ],
-                ...result.issues.map((issue) => [
-                    this.formatSeverity(issue.severity),
-                    this.truncate(issue.selector, 30),
-                    this.formatOverflow(issue),
-                    this.truncate(issue.textContent, 20),
-                    chalk.gray(issue.suggestion || '-'),
-                ]),
+                ...result.issues.map((issue, idx) => {
+                    // Format source as file:line if available
+                    let sourceDisplay: string;
+                    if (issue.sourceFile && issue.sourceLine) {
+                        sourceDisplay = chalk.cyan(`${issue.sourceFile}:${issue.sourceLine}`);
+                    } else if (issue.sourceFile) {
+                        sourceDisplay = chalk.cyan(issue.sourceFile);
+                    } else {
+                        sourceDisplay = chalk.gray('-');
+                    }
+
+                    // Get English text (if available for non-English locales)
+                    const englishText = (issue as any).englishText;
+                    const englishDisplay = englishText
+                        ? chalk.green(englishText)
+                        : chalk.gray(result.locale === 'en' ? '(source)' : '-');
+
+                    return [
+                        chalk.gray(`${idx + 1}`),
+                        this.formatSeverity(issue.severity),
+                        this.formatOverflow(issue),
+                        sourceDisplay,
+                        issue.textContent, // Full text, no truncation
+                        englishDisplay,
+                    ];
+                }),
             ];
 
             console.log(
