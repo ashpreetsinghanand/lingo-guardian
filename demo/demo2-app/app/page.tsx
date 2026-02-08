@@ -95,21 +95,8 @@ export default function LandingPage() {
                     </div>
                 </div>
 
-                <div className="demo-panel-section">
-                    <label className="demo-panel-label">Overflow Fixes:</label>
-                    <button
-                        className={`demo-toggle-btn ${fixesEnabled ? 'enabled' : 'disabled'}`}
-                        onClick={() => setFixesEnabled(!fixesEnabled)}
-                    >
-                        {fixesEnabled ? '✅ FIXED' : '❌ BROKEN'}
-                    </button>
-                </div>
-
                 <div className="demo-panel-hint">
-                    {fixesEnabled
-                        ? '✨ CSS fixes applied - no red glows!'
-                        : '🔴 Switch language to see overflow issues'
-                    }
+                    🔴 Switch language to see overflow issues
                 </div>
             </div>
 

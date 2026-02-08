@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLingoGuardian } from 'lingo-guardian-reporter';
 
 // Simple i18n hook
 function useTranslations(locale: string) {
@@ -37,6 +38,9 @@ export default function LandingPage() {
 
     const { t } = useTranslations(locale);
 
+    // Enable Lingo-Guardian red border detection
+    useLingoGuardian({ enable: true, showGlow: true });
+
     return (
         <div>
             {/* Navigation */}
@@ -46,13 +50,13 @@ export default function LandingPage() {
                         ☁️ CloudFlow
                     </a>
                     <ul className="nav-links">
-                        <li><a href="#features">{t('nav.features')}</a></li>
-                        <li><a href="#pricing">{t('nav.pricing')}</a></li>
-                        <li><a href="#testimonials">{t('nav.docs')}</a></li>
+                        <li><a href="#features" style={{ width: '70px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden' }}>{t('nav.features')}</a></li>
+                        <li><a href="#pricing" style={{ width: '60px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden' }}>{t('nav.pricing')}</a></li>
+                        <li><a href="#testimonials" style={{ width: '80px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden' }}>{t('nav.docs')}</a></li>
                     </ul>
                     <div className="nav-actions">
-                        <button className="btn btn-ghost">{t('nav.signIn')}</button>
-                        <button className="btn btn-primary">{t('nav.getStarted')}</button>
+                        <button className="btn btn-ghost" style={{ width: '80px', whiteSpace: 'nowrap', overflow: 'hidden' }}>{t('nav.signIn')}</button>
+                        <button className="btn btn-primary" style={{ width: '100px', whiteSpace: 'nowrap', overflow: 'hidden' }}>{t('nav.getStarted')}</button>
                     </div>
                 </div>
             </nav>
