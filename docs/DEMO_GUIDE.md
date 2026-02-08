@@ -114,3 +114,6 @@ Run with error flag to verify it fails a build:
 npx lingo-guardian lint http://localhost:5173 --fail-on-error
 # Exit code will be 1 (failure)
 ```
+path->
+
+/Users/ashpreetsinghanand/Desktop/lingo-guardin/demo/demo2-app

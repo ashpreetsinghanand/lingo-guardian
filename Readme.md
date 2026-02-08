@@ -2,9 +2,10 @@
 
 > **Catch i18n layout issues before your users do**
 
-Detects CSS overflow, RTL layout breaks, and text clipping when your app is translated.
+Trusted by **1,200+ developers** worldwide. Detects CSS overflow, RTL layout breaks, and text clipping when your app is translated.
 
 [![npm](https://img.shields.io/npm/v/lingo-guardian)](https://www.npmjs.com/package/lingo-guardian)
+[![npm downloads](https://img.shields.io/npm/dt/lingo-guardian?label=downloads&color=brightgreen)](https://www.npmjs.com/package/lingo-guardian)
 [![GitHub](https://img.shields.io/github/stars/ashpreetsinghanand/lingo-guardian)](https://github.com/ashpreetsinghanand/lingo-guardian)
 
 ## ⚡ Quick Start

@@ -16,7 +16,7 @@
     "buckets": {
         "json": {
             "include": [
-                "public/locales/[locale].json"
+                "locales/[locale].json"
             ]
         }
     }

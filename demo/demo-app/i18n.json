@@ -6,8 +6,7 @@
     "targets": [
       "de",
       "ar",
-      "ja",
-      "pseudo"
+      "ja"
     ]
   },
   "buckets": {
