@@ -636,6 +636,311 @@
     </div>
   </div>
 
+  <!-- Onboarding Wizard -->
+  <div id="onboardingModal" class="onboarding-modal">
+    <div class="onboarding-content">
+      <div class="onboarding-header">
+        <div class="onboarding-logo">
+          <img src="./assets/icon.png" alt="Lingo" width="32" height="32" onerror="this.style.display='none'">
+          <span>Lingo Sidecar</span>
+        </div>
+        <div class="onboarding-steps-indicator">
+          <div class="step-dot active" data-step="1">1</div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-step="2">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-step="3">3</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Install Reporter -->
+      <div class="onboarding-step" id="step1">
+        <h2>Step 1: Install the Reporter</h2>
+        <p class="step-description">Add the Lingo Guardian reporter to your React/Next.js app to detect overflow issues
+          in real-time.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode('npm install lingo-guardian-reporter')">Copy</button>
+          </div>
+          <pre>npm install lingo-guardian-reporter</pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span>Your App (e.g., layout.tsx or App.tsx)</span>
+            <button class="copy-btn"
+              onclick="copyCode(`import { useLingoGuardian } from 'lingo-guardian-reporter';\n\nexport default function App() {\n  useLingoGuardian({ enable: true });\n  return <YourApp />;\n}`)">Copy</button>
+          </div>
+          <pre>import { useLingoGuardian } from 'lingo-guardian-reporter';
+
+export default function App() {
+  useLingoGuardian({ enable: true });
+  return &lt;YourApp /&gt;;
+}</pre>
+        </div>
+
+        <div class="step-info">
+          <span class="info-icon">💡</span>
+          <span>This adds a red glow to elements with overflow issues when you view your app in the Sidecar.</span>
+        </div>
+      </div>
+
+      <!-- Step 2: Configure URL -->
+      <div class="onboarding-step" id="step2" style="display:none">
+        <h2>Step 2: Enter Your App URL</h2>
+        <p class="step-description">Point the Sidecar to your development server so it can display your app in multiple
+          languages.</p>
+
+        <div class="form-group" style="margin: 20px 0">
+          <label>Application URL <span style="color:var(--text-secondary)">(optional - can set later)</span></label>
+          <input type="text" id="onboardingUrl" placeholder="http://localhost:3000">
+          <div class="form-hint">Your running dev server URL</div>
+        </div>
+
+        <div class="step-info">
+          <span class="info-icon">🌐</span>
+          <span>The Sidecar will load your app in 4 language panes simultaneously. Add <code>?lang=xx</code> support to
+            see translations!</span>
+        </div>
+      </div>
+
+      <!-- Step 3: API Key -->
+      <div class="onboarding-step" id="step3" style="display:none">
+        <h2>Step 3: Connect Lingo.dev (Optional)</h2>
+        <p class="step-description">Add your Lingo.dev API key to enable AI-powered translations directly from the
+          Sidecar.</p>
+
+        <div class="form-group" style="margin: 20px 0">
+          <label>API Key <span style="color:var(--text-secondary)">(optional - can set later)</span></label>
+          <input type="text" id="onboardingApiKey" placeholder="api_xxxxxxxxxxxxx">
+          <div class="form-hint">Get your key at <a href="https://lingo.dev" target="_blank"
+              style="color:var(--accent)">lingo.dev</a></div>
+        </div>
+
+        <div class="form-group" style="margin: 20px 0">
+          <label>Project Path <span style="color:var(--text-secondary)">(optional - can set later)</span></label>
+          <input type="text" id="onboardingProjectPath" placeholder="/path/to/your/project">
+          <div class="form-hint">Path to your project with i18n.json</div>
+        </div>
+
+        <div class="step-info">
+          <span class="info-icon">🚀</span>
+          <span>Click the "Translate" button to run <code>lingo.dev run</code> and generate translations for all
+            configured languages!</span>
+        </div>
+      </div>
+
+      <div class="onboarding-footer">
+        <button class="btn-secondary" id="prevBtn" onclick="prevStep()" style="display:none">← Back</button>
+        <div class="spacer"></div>
+        <button class="btn-text" onclick="skipOnboarding()">Skip</button>
+        <button class="btn-primary" id="nextBtn" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .onboarding-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .onboarding-modal.active {
+      display: flex;
+    }
+
+    .onboarding-content {
+      background: var(--bg-primary);
+      border-radius: 16px;
+      width: 560px;
+      max-height: 85vh;
+      overflow: auto;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+    }
+
+    .onboarding-header {
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .onboarding-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .onboarding-steps-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .step-dot.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .step-dot.completed {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .step-line {
+      width: 24px;
+      height: 2px;
+      background: var(--border-color);
+    }
+
+    .onboarding-step {
+      padding: 24px;
+    }
+
+    .onboarding-step h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .step-description {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .code-block {
+      background: #1d1d1f;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .code-header {
+      padding: 8px 12px;
+      background: #2d2d2f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #888;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #888;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .code-block pre {
+      padding: 12px;
+      margin: 0;
+      font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+      font-size: 12px;
+      color: #69E300;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    .step-info {
+      background: rgba(0, 113, 227, 0.08);
+      border: 1px solid rgba(0, 113, 227, 0.15);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .step-info code {
+      background: rgba(0, 0, 0, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .info-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .onboarding-footer {
+      padding: 16px 24px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn-text {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 8px 12px;
+    }
+
+    .btn-text:hover {
+      color: var(--text-primary);
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-color);
+    }
+  </style>
+
   <script>
     const { ipcRenderer } = require('electron');
 
@@ -681,13 +986,87 @@
     }
     if (savedSettings.projectPath) elements.projectPath.value = savedSettings.projectPath;
 
-    // First launch - open settings if no URL configured
-    const isFirstLaunch = !savedSettings.url;
-    if (isFirstLaunch) {
+    // Onboarding state
+    let currentStep = 1;
+    const onboardingModal = document.getElementById('onboardingModal');
+
+    // Check if first launch (never completed onboarding)
+    const hasCompletedOnboarding = localStorage.getItem('lingoOnboardingComplete');
+    if (!hasCompletedOnboarding) {
       setTimeout(() => {
-        openSettings();
-        showToast('Welcome! Please configure your project settings.', 'info');
-      }, 500);
+        showOnboarding();
+      }, 300);
+    }
+
+    function showOnboarding() {
+      onboardingModal.classList.add('active');
+      updateStepUI();
+    }
+
+    function hideOnboarding() {
+      onboardingModal.classList.remove('active');
+      localStorage.setItem('lingoOnboardingComplete', 'true');
+    }
+
+    function updateStepUI() {
+      // Hide all steps
+      document.querySelectorAll('.onboarding-step').forEach(s => s.style.display = 'none');
+      // Show current step
+      document.getElementById(`step${currentStep}`).style.display = 'block';
+
+      // Update step indicators
+      document.querySelectorAll('.step-dot').forEach((dot, i) => {
+        dot.classList.remove('active', 'completed');
+        if (i + 1 < currentStep) dot.classList.add('completed');
+        else if (i + 1 === currentStep) dot.classList.add('active');
+      });
+
+      // Update buttons
+      document.getElementById('prevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+      document.getElementById('nextBtn').textContent = currentStep === 3 ? 'Get Started' : 'Next →';
+    }
+
+    function nextStep() {
+      if (currentStep === 3) {
+        // Save any entered values from onboarding
+        const onboardingUrl = document.getElementById('onboardingUrl').value.trim();
+        const onboardingApiKey = document.getElementById('onboardingApiKey').value.trim();
+        const onboardingProjectPath = document.getElementById('onboardingProjectPath').value.trim();
+
+        if (onboardingUrl) elements.urlInput.value = onboardingUrl;
+        if (onboardingApiKey) elements.apiKeyInput.value = onboardingApiKey;
+        if (onboardingProjectPath) elements.projectPath.value = onboardingProjectPath;
+
+        if (onboardingUrl || onboardingApiKey || onboardingProjectPath) {
+          saveSettings();
+        }
+
+        hideOnboarding();
+        showToast('Welcome to Lingo Sidecar! Configure settings via ⚙️', 'success');
+        return;
+      }
+      currentStep++;
+      updateStepUI();
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepUI();
+      }
+    }
+
+    function skipOnboarding() {
+      hideOnboarding();
+      showToast('You can configure settings anytime via ⚙️', 'info');
+    }
+
+    function copyCode(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Failed to copy', 'error');
+      });
     }
 
     function reloadAll() {

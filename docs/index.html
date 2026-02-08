@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingo Guardian - Catch i18n Layout Issues Before Your Users Do</title>
+    <meta name="description"
+        content="Open-source toolkit for detecting CSS overflow issues in translated web apps. CLI, GitHub Actions, React Hook, and Electron Sidecar.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-2: #1a1a1a;
+            --border: #2a2a2a;
+            --text: #ffffff;
+            --text-secondary: #888888;
+            --accent: #69E300;
+            --accent-glow: rgba(105, 227, 0, 0.15);
+            --red: #ff453a;
+            --blue: #0a84ff;
+            --purple: #bf5af2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Nav */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent), #4CAF50);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #7fff00;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 160px 0 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent) 0%, #4CAF50 100%);
+            -webkit-background-clip: text;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .hero-demo {
+            margin-top: 60px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-demo img {
+            width: 100%;
+            display: block;
+        }
+
+        /* Red Glow Demo */
+        .red-glow-demo {
+            background: var(--surface);
+            padding: 60px 0;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .demo-text h2 {
+            font-size: 36px;
+            margin-bottom: 16px;
+        }
+
+        .demo-text p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .demo-visual {
+            position: relative;
+            padding: 24px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .demo-card {
+            background: var(--surface-2);
+            padding: 16px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .demo-card.overflow {
+            box-shadow: 0 0 0 2px var(--red), 0 0 20px rgba(255, 69, 58, 0.3);
+        }
+
+        .demo-card-title {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .demo-card-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        /* Tools Section */
+        .tools {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .tool-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 40px var(--accent-glow);
+        }
+
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .tool-icon.cli {
+            background: linear-gradient(135deg, var(--accent), #4CAF50);
+        }
+
+        .tool-icon.action {
+            background: linear-gradient(135deg, var(--purple), #9c27b0);
+        }
+
+        .tool-icon.reporter {
+            background: linear-gradient(135deg, var(--blue), #2196F3);
+        }
+
+        .tool-icon.sidecar {
+            background: linear-gradient(135deg, var(--red), #ff6b6b);
+        }
+
+        .tool-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .tool-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .code-snippet {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            color: var(--accent);
+            overflow-x: auto;
+        }
+
+        /* Download Section */
+        .download {
+            padding: 80px 0;
+            background: var(--surface);
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .download-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .download-card h3 {
+            margin: 16px 0 8px;
+            font-size: 18px;
+        }
+
+        .download-card p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .download-icon {
+            font-size: 48px;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .download-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-container {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <span>Lingo Guardian</span>
+            </div>
+            <div class="nav-links">
+                <a href="#tools">Tools</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#download">Download</a>
+                <a href="https://github.com/user/lingo-guardian">GitHub</a>
+            </div>
+            <a href="#download" class="btn btn-primary">Download →</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Catch i18n Layout Issues<br><span>Before Your Users Do</span></h1>
+            <p>Open-source toolkit for detecting CSS overflow issues in translated web apps. Automatically find where
+                German words break your layouts.</p>
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">Download Sidecar</a>
+                <a href="#tools" class="btn btn-secondary">View All Tools</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="red-glow-demo">
+        <div class="container">
+            <div class="demo-container">
+                <div class="demo-text">
+                    <h2>The <span style="color: var(--red)">Red Glow</span> Detection</h2>
+                    <p>When translated text overflows its container, Lingo Guardian adds a red glow to highlight the
+                        issue. Instantly see which elements need CSS fixes.</p>
+                    <a href="#tools" class="btn btn-secondary">Learn More →</a>
+                </div>
+                <div class="demo-visual">
+                    <div class="demo-card" style="margin-bottom: 16px;">
+                        <div class="demo-card-title">🇺🇸 English</div>
+                        <div class="demo-card-text">Start Free Trial</div>
+                    </div>
+                    <div class="demo-card overflow">
+                        <div class="demo-card-title">🇩🇪 German</div>
+                        <div class="demo-card-text">Kostenlose Testversion starten</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tools" id="tools">
+        <div class="container">
+            <div class="section-header">
+                <h2>4 Tools. One Mission.</h2>
+                <p>Detect and fix i18n layout issues at every stage of development.</p>
+            </div>
+
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-icon cli">⚡</div>
+                    <h3>CLI Tool</h3>
+                    <p>Run headless checks on any URL. Perfect for CI pipelines. Detects overflow issues across all your
+                        target languages.</p>
+                    <div class="code-snippet">npx lingo-guardian lint http://localhost:3000</div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-icon action">🔄</div>
+                    <h3>GitHub Action</h3>
+                    <p>Visual PR Guardian automatically comments on PRs with screenshots of layouts in different
+                        languages. Zero config.</p>
+                    <div class="code-snippet">uses: lingo-guardian/visual-pr-action@v1</div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-icon reporter">📍</div>
+                    <h3>React Reporter</h3>
+                    <p>Add the useLingoGuardian hook to your app. See red glow on overflow elements in real-time during
+                        development.</p>
+                    <div class="code-snippet">useLingoGuardian({ enable: true })</div>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-icon sidecar">🖥️</div>
+                    <h3>Electron Sidecar</h3>
+                    <p>Desktop app showing your site in 4 languages side-by-side. Integrated with lingo.dev for AI
+                        translations.</p>
+                    <div class="code-snippet">Download for Mac / Windows</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="download" id="download">
+        <div class="container">
+            <div class="section-header">
+                <h2>Download Lingo Sidecar</h2>
+                <p>The desktop companion app for visual i18n testing.</p>
+            </div>
+
+            <div class="download-grid">
+                <div class="download-card">
+                    <div class="download-icon">🍎</div>
+                    <h3>macOS (Apple Silicon)</h3>
+                    <p>For M1, M2, M3 Macs</p>
+                    <a href="#" class="btn btn-primary" id="download-mac-arm">Download .dmg</a>
+                </div>
+
+                <div class="download-card">
+                    <div class="download-icon">🍎</div>
+                    <h3>macOS (Intel)</h3>
+                    <p>For Intel-based Macs</p>
+                    <a href="#" class="btn btn-primary" id="download-mac-intel">Download .dmg</a>
+                </div>
+
+                <div class="download-card">
+                    <div class="download-icon">🪟</div>
+                    <h3>Windows</h3>
+                    <p>For Windows 10/11</p>
+                    <a href="#" class="btn btn-primary" id="download-win">Download .exe</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built with 💚 by <a href="https://github.com/user/lingo-guardian">Lingo Guardian</a> • Powered by <a
+                    href="https://lingo.dev">lingo.dev</a></p>
+        </div>
+    </footer>
+
+</body>
+
+</html>

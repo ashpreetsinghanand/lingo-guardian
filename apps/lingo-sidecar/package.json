@@ -1,0 +1,88 @@
+{
+  "name": "lingo-sidecar",
+  "version": "1.0.0",
+  "description": "Desktop Companion for Lingo Guardian - Visual i18n Testing",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir",
+    "build:mac": "electron-builder --mac --x64 --arm64",
+    "build:win": "electron-builder --win --x64"
+  },
+  "keywords": [],
+  "author": "Lingo-Guardian",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "7zip-bin": "^5.2.0",
+    "electron": "28.2.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.lingoguardian.sidecar",
+    "productName": "Lingo Sidecar",
+    "icon": "assets/icon.png",
+    "files": [
+      "main.js",
+      "index.html",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  }
+}
