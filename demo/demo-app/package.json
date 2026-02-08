@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "client-only": "^0.0.1",
-    "lingo-guardian": "file:../../packages/cli",
     "lingo.dev": "^0.128.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -24,7 +23,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "lingo-guardian-reporter": "file:../../packages/reporter"
+    "typescript": "^5"
   }
 }

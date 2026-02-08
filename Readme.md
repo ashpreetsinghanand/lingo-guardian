@@ -36,9 +36,9 @@ Desktop app for visual i18n testing with 4-language side-by-side view.
 
 | Platform | Download |
 |----------|----------|
-| **macOS (Apple Silicon)** | [Lingo Sidecar-1.0.0-arm64.dmg](https://github.com/ashpreetsinghanand/lingo-guardian/releases/download/v1.0.0/Lingo.Sidecar-1.0.0-arm64.dmg) |
-| **macOS (Intel)** | [Lingo Sidecar-1.0.0.dmg](https://github.com/ashpreetsinghanand/lingo-guardian/releases/download/v1.0.0/Lingo.Sidecar-1.0.0.dmg) |
-| **Windows** | [Lingo Sidecar Setup 1.0.0.exe](https://github.com/ashpreetsinghanand/lingo-guardian/releases/download/v1.0.0/Lingo.Sidecar.Setup.1.0.0.exe) |
+| **macOS (Apple Silicon)** | [Lingo Sidecar-1.0.0-arm64.dmg](https://github.com/ashpreetsinghanand/lingo-guardian/Lingo Sidecar-1.0.0-arm64.dmg) |
+| **macOS (Intel)** | [Lingo Sidecar-1.0.0.dmg](https://github.com/ashpreetsinghanand/lingo-guardian/Lingo Sidecar-1.0.0.dmg) |
+| **Windows** | [Lingo Sidecar Setup 1.0.0.exe](https://github.com/ashpreetsinghanand/lingo-guardian/Lingo Sidecar.Setup.1.0.0.exe) |
 
 ---
 

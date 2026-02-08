@@ -100,6 +100,17 @@ export default function LandingPage() {
                 </div>
             </div>
 
+            {/* ✨ LIVE DEMO SECTION - Type here and see translations! */}
+            <div className="live-demo-section">
+                <div className="live-demo-label">✨ Live Demo - Type anything below and see translations:</div>
+                <h1 className="live-demo-h1" style={{ width: '400px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                    {t('demo.liveText')}
+                </h1>
+                <p className="live-demo-hint">
+                    Edit <code>locales/en.json</code> → key: <code>"demo.liveText"</code>
+                </p>
+            </div>
+
             {/* Navigation */}
             <nav className="nav">
                 <div className="nav-container">
