@@ -16,6 +16,53 @@ Detects UI overflows, RTL layout breaks, and missing i18n keys before they reach
 npx @lingo-guardian/cli lint http://localhost:3000
 ```
 
+## 🚀 Demo Apps
+
+This repository includes two demo applications to showcase Lingo-Guardian's capabilities:
+
+### 1. CloudFlow Landing Page (`apps/demo1-app`)
+A realistic SaaS landing page with 80+ translation keys, used to demonstrate the **CLI Audit** workflow.
+- **Port:** 3001
+- **Features:** Overflow detection, CLI integration, 7 languages.
+- **Run:** `cd apps/demo1-app && npm run dev`
+
+### 2. Live Reporter Demo (`apps/demo2-app`)
+A copy of the landing page integrated with the **Lingo-Guardian Reporter** hook for live development testing.
+- **Port:** 3002
+- **Features:** 
+  - 🔴 Live "Red Glow" overflow detection
+  - 🛡️ Interactive Control Panel to toggle CSS fixes
+  - 🖥️ Integration with Electron Sidecar
+- **Run:** `cd apps/demo2-app && npm run dev`
+
+---
+
+## 💻 Electron Sidecar
+
+The **Lingo-Guardian Sidecar** (`apps/electron-sidecar`) is a powerful desktop companion app that pairs with `demo2-app`.
+
+**Features:**
+- 🖼️ **Multi-View Modes:** Toggle between 4-pane "Grid" and single-pane "Focus"
+- 🔍 **Zoom Control:** Slider to simulate different screen densities
+- 🌐 **Language Switcher:** Quickly change the focus language
+- ⚡ **Live Alerts:** Real-time red glow notifications via WebSocket
+
+**Usage:**
+1. Open a new terminal
+2. `cd apps/electron-sidecar`
+3. `npm start`
+4. Use `demo2-app` - overflows will trigger alerts in the Sidecar!
+
+**Building for Production:**
+To create a standalone app for Mac/Windows:
+```bash
+cd apps/electron-sidecar
+npm run dist
+```
+Build artifacts will be in the `dist/` folder.
+
+---
+
 ### Option 2: Install Globally
 ```bash
 npm install -g @lingo-guardian/cli

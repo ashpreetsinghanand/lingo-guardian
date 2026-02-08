@@ -65,8 +65,33 @@ export function useLingoGuardian(config: ReportConfig = {}) {
             });
         };
 
-        // Broadcast to Parent (Dashboard)
-        const broadcastIssue = (type: string, payloadSource: any) => {
+        // WebSocket connection to Sidecar
+        const wsRef = useRef<WebSocket | null>(null);
+
+        useEffect(() => {
+            if (!enable) return;
+
+            // Connect to Sidecar
+            try {
+                wsRef.current = new WebSocket('ws://localhost:8080');
+                wsRef.current.onopen = () => {
+                    console.log('[Lingo-Guardian] Connected to Sidecar');
+                };
+                wsRef.current.onerror = () => {
+                    // Silently fail if sidecar is not running
+                };
+            } catch (e) {
+                // Ignore connection errors
+            }
+
+            return () => {
+                wsRef.current?.close();
+            };
+        }, [enable]);
+
+        // Broadcast to Parent (Dashboard) AND Sidecar
+        const broadcastIssue = (type: string, payloadSource: any, text: string) => {
+            // 1. Dashboard (iframe)
             if (window.parent && window.parent !== window) {
                 window.parent.postMessage({
                     type: 'LINGO_OVERFLOW',
@@ -76,6 +101,19 @@ export function useLingoGuardian(config: ReportConfig = {}) {
                     }
                 }, '*');
             }
+
+            // 2. Sidecar (WebSocket)
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify({
+                    type: 'OVERFLOW_REPORT',
+                    data: {
+                        type,
+                        message: text,
+                        source: payloadSource,
+                        timestamp: new Date().toISOString()
+                    }
+                }));
+            }
         };
 
         // UI: Visual Indicator
@@ -84,10 +122,11 @@ export function useLingoGuardian(config: ReportConfig = {}) {
 
             // Extract Source
             const source = getReactSource(el);
+            const text = el.innerText.substring(0, 50) + (el.innerText.length > 50 ? '...' : '');
 
             // Apply Red Glow
             el.style.outline = '2px solid red';
-            el.style.position = 'relative'; // Risk of breaking layout, better to use overlay?
+            el.style.position = 'relative';
             el.setAttribute('title', `[Lingo-Guardian] ${type} \nSource: ${source?.fileName}:${source?.lineNumber}`);
             el.dataset.lingoGuardian = 'true';
 
@@ -102,8 +141,9 @@ export function useLingoGuardian(config: ReportConfig = {}) {
             }
 
             // Broadcast!
-            broadcastIssue(type, source);
+            broadcastIssue(type, source, text);
         };
+
 
         // Observer: Detect resizes
         observerRef.current = new ResizeObserver(() => {

@@ -4,15 +4,31 @@
   "description": "Desktop Companion for Lingo-Guardian",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir"
   },
   "keywords": [],
-  "author": "",
+  "author": "Lingo-Guardian",
   "license": "ISC",
   "dependencies": {
     "ws": "^8.16.0"
   },
   "devDependencies": {
-    "electron": "^28.2.0"
+    "electron": "28.2.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.lingoguardian.sidecar",
+    "productName": "LingoSidecar",
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }
