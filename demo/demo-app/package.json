@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "client-only": "^0.0.1",
-    "lingo-guardian": "file:../../packages/cli/lingo-guardian-0.1.4.tgz",
+    "lingo-guardian": "file:../../packages/cli",
     "lingo.dev": "^0.128.0",
     "next": "16.1.6",
     "react": "19.2.3",
